@@ -3,286 +3,828 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DR Detection Result</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>Diagnostic Report - OptiScan DR</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            background: radial-gradient(circle at center, #112240, #0a192f);
-            color: #e6f1ff;
-            min-height: 100vh;
-            overflow-x: hidden;
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(148, 163, 184, 0.15);
+            --card-border-hover: rgba(2, 132, 199, 0.3);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent-teal: #0f766e;
+            --accent-blue: #0284c7;
+            --accent-purple: #7c3aed;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --light-border: rgba(148, 163, 184, 0.2);
         }
 
-        h1, h2, h3, h4 {
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            padding: 50px 20px;
+        /* Ambient soft background glows (Light Mode) */
+        .glow-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.35;
+            pointer-events: none;
+            animation: floatBlobs 25s infinite alternate ease-in-out;
+        }
+        .glow-blob-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #bae6fd 0%, transparent 70%);
+            top: -150px;
+            right: -100px;
+        }
+        .glow-blob-2 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #ddd6fe 0%, transparent 70%);
+            bottom: -200px;
+            left: -150px;
+            animation-delay: -8s;
         }
 
-        /* Animations */
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes floatBlobs {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, 30px) scale(1.05); }
+            100% { transform: translate(-20px, 50px) scale(0.98); }
         }
 
-        .animate-1 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-2 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards; opacity: 0; }
-        .animate-3 { animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; opacity: 0; }
-
-        /* Header Section */
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
+        /* Navbar Header Console */
+        .navbar-custom {
+            border-bottom: 1px solid var(--light-border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 15px 30px;
+            box-shadow: 0 4px 15px rgba(148, 163, 184, 0.05);
         }
 
-        .header h1 {
-            font-size: 38px;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #64ffda, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-        }
-
-        /* Image Display Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .card h3 {
-            margin-top: 0;
+        .btn-glass {
+            background: #ffffff;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: var(--text-primary);
             font-weight: 600;
-            color: #ccd6f6;
-            letter-spacing: 0.5px;
-        }
-
-        img {
-            width: 100%;
-            height: auto;
+            padding: 10px 20px;
             border-radius: 12px;
-            border: 2px solid rgba(255,255,255,0.1);
-            margin-top: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
         }
 
-        /* Result Analysis Card */
-        .result-card {
-            background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9));
-            border: 1px solid rgba(255,255,255,0.05);
+        .btn-glass:hover {
+            background: #f8fafc;
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 6px 22px rgba(2, 132, 199, 0.4);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
             border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(148, 163, 184, 0.08);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            margin-bottom: 30px;
         }
 
-        .diagnosis-text {
-            font-size: 34px;
-            font-weight: 800;
-            margin-bottom: 10px;
+        .glass-card:hover {
+            border-color: var(--card-border-hover);
+            box-shadow: 0 15px 40px rgba(2, 132, 199, 0.12);
+        }
+
+        /* Diagnostic States Colors (Light Mode) */
+        .color-success { color: var(--success); }
+        .color-warning { color: var(--warning); }
+        .color-danger { color: var(--danger); }
+
+        .bg-success-subtle { background: rgba(22, 163, 74, 0.05) !important; border: 1px solid rgba(22, 163, 74, 0.2) !important; }
+        .bg-warning-subtle { background: rgba(217, 119, 6, 0.05) !important; border: 1px solid rgba(217, 119, 6, 0.2) !important; }
+        .bg-danger-subtle { background: rgba(220, 26, 26, 0.05) !important; border: 1px solid rgba(220, 26, 26, 0.2) !important; }
+
+        /* HUD Subtitle and labels */
+        .img-panel-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-blue);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            text-align: center;
         }
 
-        /* Color States */
-        .good { color: #64ffda; text-shadow: 0 0 20px rgba(100,255,218,0.4); }
-        .warn { color: #facc15; text-shadow: 0 0 20px rgba(250,204,21,0.4); }
-        .bad { color: #ff6b6b; text-shadow: 0 0 20px rgba(255,107,107,0.4); }
-
-        /* Progress Bars */
-        .bar-container {
-            max-width: 700px;
-            margin: 35px auto 20px;
-            text-align: left;
-            background: rgba(0,0,0,0.2);
-            padding: 25px;
-            border-radius: 16px;
+        .img-panel-frame {
+            border-radius: 18px;
+            border: 1px solid var(--card-border);
+            background: #ffffff;
+            padding: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
 
-        .bar-wrapper {
-            margin-bottom: 18px;
+        .img-panel-frame::after {
+            content: 'FEED SECURED';
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            font-size: 9px;
+            font-family: monospace;
+            background: rgba(255,255,255,0.9);
+            color: var(--accent-blue);
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            border: 1px solid rgba(2, 132, 199, 0.15);
         }
 
-        .bar-wrapper:last-child { margin-bottom: 0; }
+        .img-panel-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
 
-        .bar-label {
+        /* Clinical Diagnostic Console Overlay */
+        .blend-viewer-container {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            margin: auto;
+            aspect-ratio: 1;
+            border-radius: 24px;
+            border: 2px solid rgba(2, 132, 199, 0.3);
+            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.12);
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Moving laser line scanning animation */
+        .blend-viewer-container::after {
+            content: '';
+            position: absolute;
+            left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), var(--accent-teal), transparent);
+            box-shadow: 0 0 10px var(--accent-blue);
+            z-index: 5;
+            pointer-events: none;
+            animation: radarScanning 4s infinite ease-in-out;
+        }
+
+        @keyframes radarScanning {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* Digital crosshair HUD (Light blue) */
+        .hud-crosshair {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0.35;
+        }
+
+        .blend-image {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            transition: opacity 0.05s linear;
+        }
+
+        .blend-underlay {
+            z-index: 1;
+        }
+
+        .blend-overlay-heatmap {
+            z-index: 2;
+        }
+
+        .blend-controls {
+            max-width: 420px;
+            margin: 30px auto 0;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        /* Slider Custom Track */
+        .slider-custom {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.05);
+            outline: none;
+            margin: 18px 0;
+        }
+
+        .slider-custom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(2, 132, 199, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .slider-custom::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        /* Probability Bars */
+        .prob-bar-wrapper {
+            margin-bottom: 22px;
+        }
+
+        .prob-bar-wrapper:last-child { margin-bottom: 0; }
+
+        .prob-bar-label {
             display: flex;
             justify-content: space-between;
-            font-size: 15px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
             margin-bottom: 8px;
-            color: #a8b2d1;
             font-weight: 500;
         }
 
-        .bar-bg {
-            width: 100%;
-            height: 14px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
+        .prob-bar-bg {
+            height: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 6px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.02);
+            border: 1px solid rgba(0,0,0,0.02);
         }
 
-        .bar-fill {
+        .prob-bar-fill {
             height: 100%;
-            border-radius: 10px;
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-            position: relative;
-            overflow: hidden;
+            border-radius: 6px;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .bar-fill::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: translateX(-100%);
-            animation: shimmer 2s infinite;
+        .bg-gradient-no { background: linear-gradient(90deg, #16a34a, #4ade80); }
+        .bg-gradient-ref { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+        /* Report Metadata fields */
+        .report-meta-box {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.01);
         }
 
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
+        .meta-field {
+            margin-bottom: 12px;
         }
+        .meta-field:last-child { margin-bottom: 0; }
 
-        /* Specific Bar Colors */
-        .bg-no { background: linear-gradient(90deg, #10b981, #34d399); }
-        .bg-mild { background: linear-gradient(90deg, #84cc16, #a3e635); }
-        .bg-moderate { background: linear-gradient(90deg, #eab308, #facc15); }
-        .bg-severe { background: linear-gradient(90deg, #f97316, #fb923c); }
-        .bg-proliferative { background: linear-gradient(90deg, #ef4444, #f87171); }
-
-        /* Buttons */
-        .btn-container {
-            margin-top: 40px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 16px 40px;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            color: #0a192f;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        .meta-title {
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Outfit', sans-serif;
+            letter-spacing: 1.5px;
+            color: var(--accent-blue);
+            font-weight: 700;
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(79, 172, 254, 0.5);
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        .meta-val {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 4px;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-            .container { padding: 30px 15px; }
-            .header h1 { font-size: 28px; }
-            .diagnosis-text { font-size: 26px; }
+        /* SCREEN-ONLY MOBILE OVERRIDES */
+        @media (max-width: 991px) {
+            body {
+                padding-bottom: 40px !important;
+            }
+            .navbar-custom {
+                padding: 12px 15px !important;
+            }
+            .navbar-custom .container-fluid {
+                flex-direction: column !important;
+                gap: 12px;
+                text-align: center;
+            }
+            .navbar-custom .fs-5 {
+                font-size: 16px !important;
+                order: -1; /* title on top */
+            }
+            .glass-card {
+                padding: 25px 20px !important;
+                border-radius: 20px !important;
+                margin-bottom: 20px !important;
+            }
+            .display-6 {
+                font-size: 26px !important;
+            }
+            .blend-viewer-container {
+                max-width: 320px !important;
+            }
+            .blend-controls {
+                max-width: 320px !important;
+                padding: 15px !important;
+            }
+            .img-panel-frame {
+                max-width: 150px !important;
+                margin: auto;
+            }
+        }
+
+        /* Printable styles */
+        #printOnlyReportHeader {
+            display: none;
+        }
+
+        @media print {
+            * {
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 1cm 1.2cm;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding-bottom: 0 !important;
+                font-size: 11px !important;
+                line-height: 1.3 !important;
+            }
+
+            .navbar-custom, .btn-container-screen, .slider-control-card, .btn-glass, .btn-glow, .bar-container, .disclaimer-text, footer {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .glass-card {
+                background: transparent !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin-bottom: 12px !important;
+            }
+
+            #printOnlyReportHeader {
+                display: block !important;
+                border-bottom: 2px solid #000000;
+                padding-bottom: 8px;
+                margin-bottom: 12px;
+            }
+
+            .print-flex-row {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                justify-content: space-between !important;
+                gap: 12px !important;
+                width: 100% !important;
+            }
+
+            .report-meta-box {
+                background: transparent !important;
+                border: 1px solid #cccccc !important;
+                color: #000000 !important;
+                padding: 10px 15px !important;
+                border-radius: 12px !important;
+            }
+
+            .meta-field {
+                margin-bottom: 4px !important;
+            }
+
+            .meta-val {
+                color: #000000 !important;
+                font-size: 12px !important;
+            }
+
+            .diagnosis-highlight-card {
+                border: 1.5px solid #000000 !important;
+                color: #000000 !important;
+                padding: 12px !important;
+                margin-bottom: 15px !important;
+                border-radius: 10px !important;
+            }
+
+            .diagnosis-highlight-card h2 {
+                font-size: 20px !important;
+                margin-top: 4px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .diagnosis-highlight-card h3 {
+                font-size: 14px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .img-panel-title {
+                font-size: 9px !important;
+                margin-bottom: 4px !important;
+                color: #333333 !important;
+                text-align: center;
+            }
+
+            .img-panel-frame {
+                border: 1px solid #888888 !important;
+                padding: 2px !important;
+                background: transparent !important;
+                border-radius: 8px !important;
+                max-height: 160px !important;
+                aspect-ratio: 1 !important;
+            }
+
+            .img-panel-frame::after {
+                display: none !important;
+            }
+
+            .color-success { color: #16a34a !important; font-weight: bold !important; text-shadow: none !important; }
+            .color-danger { color: #dc2626 !important; font-weight: bold !important; text-shadow: none !important; }
+            .color-warning { color: #d97706 !important; font-weight: bold !important; text-shadow: none !important; }
+
+            .print-signature-area {
+                display: block !important;
+                margin-top: 25px !important;
+                border-top: 1px dashed #888888;
+                padding-top: 12px !important;
+            }
+
+            .print-col-6 {
+                width: 48% !important;
+            }
+
+            .print-col-4 {
+                flex: 1 1 0% !important;
+                width: 31% !important;
+                max-width: 33% !important;
+            }
+        }
+
+        .print-signature-area {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header animate-1">
-        <h1>Diabetic Retinopathy Diagnostic Report</h1>
-        <p style="color: #8892b0; font-size: 18px; font-weight: 300;">AI-Powered Visual Analysis & Explainability</p>
+<!-- Background glowing blobs -->
+<div class="glow-blob glow-blob-1"></div>
+<div class="glow-blob glow-blob-2"></div>
+
+<!-- Navigation Bar Console -->
+<nav class="navbar navbar-custom mb-5">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="/" class="btn btn-glass">
+            <i class="fa-solid fa-arrow-left text-info"></i> Return to Workspace
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="font-outfit fw-bold text-dark fs-5" style="letter-spacing: 0.5px; text-transform: uppercase;">Diagnostic Evaluator Console</span>
+        </div>
+        <button onclick="window.print()" class="btn btn-glow">
+            <i class="fa-solid fa-print"></i> Export/Print PDF
+        </button>
     </div>
+</nav>
 
-    <div class="grid">
-        <div class="card animate-2">
-            <h3>Original Retina Scan</h3>
-            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Original Image">
+<!-- Printable report letterhead -->
+<div id="printOnlyReportHeader" class="container">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 style="font-weight: 800; margin: 0; color: #111;">OPTISCAN RETINAL SCREENING REPORT</h2>
+            <p style="margin: 3px 0 0; font-size: 12px; color: #555;">Automated Deep Learning Diabetic Retinopathy Diagnostic System</p>
         </div>
-
-        <div class="card animate-2">
-            <h3>AI Attention Map (Grad-CAM)</h3>
-            <img src="{{ url_for('static', filename='gradcam/' + heatmap) }}" alt="Grad-CAM Image">
-            <p style="font-size: 13px; color: #8892b0; margin-top: 15px; line-height: 1.4;">
-                Heatmap indicates high-importance regions (red/yellow) influencing the model's diagnostic decision.
-            </p>
+        <div style="text-align: right;">
+            <strong style="font-size: 14px;">Clinic Record</strong><br>
+            <span style="font-size: 11px; color: #555;">Date Generated: <span id="printDate"></span></span>
         </div>
-    </div>
-
-    <div class="result-card animate-3">
-        <div class="diagnosis-text 
-            {% if status == 'success' %}good
-            {% elif status == 'danger' %}bad
-            {% else %}warn{% endif %}">
-            {{ diagnosis }}
-        </div>
-        
-        <h2 style="margin: 15px 0; color: #e6f1ff; font-weight: 600;">{{ confidence }}% Confidence Match</h2>
-        <p style="color: #a8b2d1; font-size: 18px;">{{ message }}</p>
-
-        <div class="bar-container">
-            <h4 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-top: 0; color: #e6f1ff; letter-spacing: 0.5px;">Probability Distribution</h4>
-            
-            {% for item in probabilities %}
-            <div class="bar-wrapper">
-                <div class="bar-label">
-                    <span>{{ item.label }}</span>
-                    <span>{{ item.value }}%</span>
-                </div>
-                <div class="bar-bg">
-                    <div class="bar-fill 
-                        {% if 'Non-Referable' in item.label %}bg-no
-                        {% else %}bg-proliferative{% endif %}" 
-                        style="width: 0%;" data-width="{{ item.value }}%">
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="btn-container">
-            <a href="/" class="btn">Process New Scan</a>
-        </div>
-        
-        <p style="font-size: 12px; color: #8892b0; margin-top: 30px; letter-spacing: 0.5px;">
-            ⚠️ DISCLAIMER: This is a student demonstration project. Not for clinical diagnostic use without physician review.
-        </p>
     </div>
 </div>
 
+<div class="container">
+    <div class="row">
+        
+        <!-- Left Side: Results Summary -->
+        <div class="col-lg-5">
+            <div class="glass-card text-center mb-4 diagnosis-highlight-card
+                {% if status == 'success' %}bg-success-subtle
+                {% elif status == 'danger' %}bg-danger-subtle
+                {% else %}bg-warning-subtle{% endif %}">
+                
+                <div class="meta-title text-secondary">Inference Classification</div>
+                <h2 class="font-outfit fw-extrabold display-6 mt-2 mb-3
+                    {% if status == 'success' %}color-success
+                    {% elif status == 'danger' %}color-danger
+                    {% else %}color-warning{% endif %}" style="font-weight: 900; text-transform: uppercase;">
+                    {{ diagnosis }}
+                </h2>
+
+                <h3 class="fw-bold font-outfit text-dark mb-3">{{ confidence }}% Match Confidence</h3>
+                <p class="text-secondary small px-3 mb-0" style="line-height: 1.6;">{{ message }}</p>
+            </div>
+
+            <!-- Subject Demographics -->
+            <div class="glass-card">
+                <h5 class="fw-bold font-outfit text-dark mb-4"><i class="fa-solid fa-id-card text-info me-2"></i>Subject Details</h5>
+                
+                <div class="report-meta-box">
+                    <div class="print-flex-row">
+                        <div class="meta-field print-col-6">
+                            <div class="meta-title">Patient Profile</div>
+                            <div class="meta-val">
+                                {% if patient_name %}
+                                {{ patient_name }}
+                                {% else %}
+                                <span class="text-warning font-outfit opacity-75"><i class="fa-solid fa-triangle-exclamation"></i> Anonymous Scan</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="meta-field print-col-6">
+                            <div class="meta-title">Patient ID</div>
+                            <div class="meta-val">
+                                {% if patient_id %}
+                                {{ patient_id }}
+                                {% else %}
+                                <span class="text-warning opacity-75">Unlinked</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="print-flex-row mt-3">
+                        <div class="meta-field print-col-6">
+                            <div class="meta-title">Eye Side</div>
+                            <div class="meta-val">{{ eye_side if eye_side else 'Not Specified' }}</div>
+                        </div>
+                        <div class="meta-field print-col-6">
+                            <div class="meta-title">Evaluation Date</div>
+                            <div class="meta-val" id="reportTimestamp"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if not patient_id %}
+                <div class="mt-4 p-3 rounded-4 bg-warning-subtle disclaimer-text">
+                    <span style="font-size: 11px; color: var(--warning); line-height: 1.4; display: block;">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i> <strong>Aesthetic alert: Unlinked Scan.</strong> This diagnostic result is not saved to any database profile. Ensure a patient profile is registered to record scan history.
+                    </span>
+                </div>
+                {% else %}
+                <div class="mt-4 p-3 rounded-4 bg-success-subtle disclaimer-text" style="border-color: rgba(22, 163, 74, 0.2) !important;">
+                    <span style="font-size: 11px; color: var(--success); line-height: 1.4; display: block;">
+                        <i class="fa-solid fa-circle-check me-1"></i> <strong>Link status: Secure.</strong> This screening record has been automatically logged under Patient file ID: <strong>{{ patient_id }}</strong>.
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Probability Distributions -->
+            <div class="glass-card bar-container">
+                <h5 class="fw-bold font-outfit text-dark mb-4"><i class="fa-solid fa-chart-simple text-success me-2"></i>Probability Densities</h5>
+                
+                {% for item in probabilities %}
+                <div class="prob-bar-wrapper">
+                    <div class="prob-bar-label">
+                        <span>{{ item.label }}</span>
+                        <span class="font-outfit fw-bold text-dark">{{ item.value }}%</span>
+                    </div>
+                    <div class="prob-bar-bg">
+                        <div class="prob-bar-fill 
+                            {% if 'Non-Referable' in item.label %}bg-gradient-no
+                            {% else %}bg-gradient-ref{% endif %}"
+                            style="width: 0%;" data-width="{{ item.value }}%">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Side: Advanced Opacity Blending Panel -->
+        <div class="col-lg-7">
+            <div class="glass-card slider-control-card">
+                <h5 class="fw-bold font-outfit text-dark mb-4 text-center" style="letter-spacing: 0.5px;"><i class="fa-solid fa-crosshairs text-info me-2"></i>Interactive Heatmap Evaluator</h5>
+                
+                <div class="blend-viewer-container">
+                    <!-- HUD Digital Crosshairs SVG -->
+                    <svg class="hud-crosshair" viewBox="0 0 100 100">
+                        <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(2,132,199,0.5)" stroke-width="0.3" stroke-dasharray="1,1" />
+                        <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(2,132,199,0.5)" stroke-width="0.3" stroke-dasharray="1,1" />
+                        <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(2,132,199,0.5)" stroke-width="0.3" stroke-dasharray="1,1" />
+                        <!-- Corners -->
+                        <path d="M 10 20 L 10 10 L 20 10" fill="none" stroke="rgba(2,132,199,0.8)" stroke-width="0.8" />
+                        <path d="M 90 20 L 90 10 L 80 10" fill="none" stroke="rgba(2,132,199,0.8)" stroke-width="0.8" />
+                        <path d="M 10 80 L 10 90 L 20 90" fill="none" stroke="rgba(2,132,199,0.8)" stroke-width="0.8" />
+                        <path d="M 90 80 L 90 90 L 80 90" fill="none" stroke="rgba(2,132,199,0.8)" stroke-width="0.8" />
+                    </svg>
+
+                    <!-- Underlay image -->
+                    <img id="blendUnderlayImg" src="{{ url_for('static', filename='uploads/' + image) }}" class="blend-image blend-underlay" alt="Retinal fundus">
+                    <!-- Overlay heatmap -->
+                    <img id="blendOverlayImg" src="{{ url_for('static', filename='gradcam/' + heatmap) }}" class="blend-image blend-overlay-heatmap" style="opacity: 0.5;" alt="Grad-CAM overlay">
+                </div>
+
+                <div class="blend-controls">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 13px; color: var(--text-secondary);">Heatmap Mix: <strong class="text-info" id="opacityLabel">50%</strong></span>
+                        <div class="d-flex gap-2">
+                            <button onclick="toggleUnderlay('original')" id="btnToggleOrig" class="btn btn-sm btn-glass py-1 px-2 active" style="font-size: 11px; background: rgba(2, 132, 199, 0.1); border-color: var(--accent-blue); color: var(--accent-blue);">Original</button>
+                            <button onclick="toggleUnderlay('preprocessed')" id="btnTogglePrep" class="btn btn-sm btn-glass py-1 px-2" style="font-size: 11px;">Enhanced</button>
+                        </div>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" class="slider-custom" id="opacitySlider" oninput="updateOpacity(this.value)">
+                    <div class="d-flex justify-content-between text-secondary" style="font-size: 11px;">
+                        <span>0% (Raw Scan)</span>
+                        <span>100% (Activation Weights)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Image Panels -->
+            <div class="glass-card">
+                <h5 class="fw-bold font-outfit text-dark mb-4"><i class="fa-solid fa-images text-warning me-2"></i>Multi-Spectrum Channels</h5>
+                
+                <div class="row g-3 print-flex-row">
+                    <div class="col-md-4 print-col-4">
+                        <div class="img-panel-title">01 / Raw Fundus</div>
+                        <div class="img-panel-frame">
+                            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Original retina">
+                        </div>
+                    </div>
+                    <div class="col-md-4 print-col-4">
+                        <div class="img-panel-title">02 / CLAHE Contrast</div>
+                        <div class="img-panel-frame">
+                            <img src="{{ url_for('static', filename='preprocessed/' + image) }}" alt="Preprocessed retina">
+                        </div>
+                    </div>
+                    <div class="col-md-4 print-col-4">
+                        <div class="img-panel-title">03 / Grad-CAM Weights</div>
+                        <div class="img-panel-frame">
+                            <img src="{{ url_for('static', filename='gradcam/' + heatmap) }}" alt="Grad-CAM Attention">
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-secondary mt-3 small mb-0" style="line-height: 1.6; font-size: 12.5px;">
+                    <strong>Spectral Analysis Notes:</strong> Channels isolate anatomical components. Panel 02 applies contrast-limiting histogram equalization to emphasize microvascular lesions. Panel 03 defines the visual boundary of AI decision metrics.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Doctor's Signoff Box (Print view) -->
+    <div class="print-signature-area container">
+        <div class="row print-flex-row" style="margin-top: 40px;">
+            <div class="col-6 print-col-6">
+                <strong style="font-size: 12px; text-transform: uppercase;">Clinical Findings / Assessment:</strong>
+                <div style="border: 1px solid #cccccc; height: 100px; margin-top: 8px; border-radius: 6px; padding: 10px; font-size: 12px;">
+                    ____________________________________________________________________________________<br>
+                    ____________________________________________________________________________________<br>
+                    ____________________________________________________________________________________
+                </div>
+            </div>
+            <div class="col-6 print-col-6 text-end d-flex flex-column justify-content-end align-items-end" style="height: 120px;">
+                <div style="border-top: 1px solid #000000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px;">
+                    <strong>Physician Signature</strong><br>
+                    <span style="font-size: 10px; color: #555;">Dilated Fundus Exam Reviewer</span>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #eeeeee; padding-top: 10px;">
+            This report was created by the OptiScan AI deep learning classifier. Disclaimer: Student demonstration project. Not verified for clinical decision-making.
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
 <script>
-    // Trigger progress bar animations after a slight delay
-    setTimeout(() => {
-        document.querySelectorAll('.bar-fill').forEach(bar => {
-            bar.style.width = bar.getAttribute('data-width');
-        });
-    }, 500);
+    document.addEventListener("DOMContentLoaded", () => {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('reportTimestamp').textContent = dateStr;
+        document.getElementById('printDate').textContent = now.toLocaleDateString();
+
+        setTimeout(() => {
+            document.querySelectorAll('.prob-bar-fill').forEach(bar => {
+                bar.style.width = bar.getAttribute('data-width');
+            });
+        }, 300);
+    });
+
+    function updateOpacity(val) {
+        document.getElementById('blendOverlayImg').style.opacity = val / 100;
+        document.getElementById('opacityLabel').textContent = val + '%';
+    }
+
+    function toggleUnderlay(type) {
+        const img = document.getElementById('blendUnderlayImg');
+        const btnOrig = document.getElementById('btnToggleOrig');
+        const btnPrep = document.getElementById('btnTogglePrep');
+
+        btnOrig.className = 'btn btn-sm btn-glass py-1 px-2';
+        btnPrep.className = 'btn btn-sm btn-glass py-1 px-2';
+
+        if (type === 'original') {
+            img.src = "{{ url_for('static', filename='uploads/' + image) }}";
+            btnOrig.className = 'btn btn-sm btn-glass py-1 px-2 active';
+            btnOrig.style.background = 'rgba(2, 132, 199, 0.1)';
+            btnOrig.style.borderColor = 'var(--accent-blue)';
+            btnOrig.style.color = 'var(--accent-blue)';
+            btnPrep.style.background = '';
+            btnPrep.style.borderColor = '';
+            btnPrep.style.color = '';
+        } else {
+            img.src = "{{ url_for('static', filename='preprocessed/' + image) }}";
+            btnPrep.className = 'btn btn-sm btn-glass py-1 px-2 active';
+            btnPrep.style.background = 'rgba(2, 132, 199, 0.1)';
+            btnPrep.style.borderColor = 'var(--accent-blue)';
+            btnPrep.style.color = 'var(--accent-blue)';
+            btnOrig.style.background = '';
+            btnOrig.style.borderColor = '';
+            btnOrig.style.color = '';
+        }
+    }
 </script>
 
 </body>

@@ -1,12 +1,16 @@
 import tensorflow as tf
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import os
 import cv2
 import numpy as np
+import json
+import shutil
+import datetime
 from werkzeug.utils import secure_filename
 from tensorflow.keras.applications.efficientnet import preprocess_input
 
 app = Flask(__name__)
+app.secret_key = 'optiscan-clinical-portal-secret-key-2026'
 
 # ---------------- CONFIG ----------------
 UPLOAD_FOLDER = 'static/uploads'
@@ -28,7 +32,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ---------------- PREPROCESS ----------------
-def preprocess_image(path):
+def preprocess_image(path, save_filename=None):
     img = cv2.imread(path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (224, 224))
@@ -41,9 +45,13 @@ def preprocess_image(path):
     l = clahe.apply(l)
 
     lab = cv2.merge((l, a, b))
-    img = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+    img_clahe = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
 
-    img = preprocess_input(img)
+    if save_filename:
+        os.makedirs('static/preprocessed', exist_ok=True)
+        cv2.imwrite(os.path.join('static/preprocessed', save_filename), cv2.cvtColor(img_clahe, cv2.COLOR_RGB2BGR))
+
+    img = preprocess_input(img_clahe)
     img = np.expand_dims(img, axis=0)
 
     return img
@@ -139,13 +147,115 @@ def generate_gradcam(image_path, class_index):
     cv2.imwrite(save_path, superimposed)
 
     return save_path
+# ---------------- PATIENT DB HELPERS ----------------
+PATIENTS_FILE = 'patients.json'
+
+def load_patients():
+    if not os.path.exists(PATIENTS_FILE):
+        return []
+    try:
+        with open(PATIENTS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print("Error loading patients:", e)
+        return []
+
+def save_patients(patients):
+    try:
+        with open(PATIENTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(patients, f, indent=2)
+        return True
+    except Exception as e:
+        print("Error saving patients:", e)
+        return False
+
+# ---------------- AUTH CHECK ----------------
+def is_authenticated():
+    return session.get('logged_in') == True
+
+# ---------------- AUTH ROUTES ----------------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if is_authenticated():
+        return redirect(url_for('index'))
+        
+    error = None
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if email == 'doctor@optiscan.ai' and password == 'clinical2026':
+            session['logged_in'] = True
+            session['user_email'] = email
+            return redirect(url_for('index'))
+        else:
+            error = 'Invalid clinical credentials. Please try again.'
+            
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    session.pop('user_email', None)
+    return redirect(url_for('login'))
+
 # ---------------- ROUTES ----------------
 @app.route('/')
 def index():
+    if not is_authenticated():
+        return redirect(url_for('login'))
     return render_template('index.html')
+
+@app.route('/api/patients', methods=['GET'])
+def get_patients():
+    if not is_authenticated():
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    return jsonify(load_patients())
+
+@app.route('/api/patients/add', methods=['POST'])
+def add_patient():
+    if not is_authenticated():
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    data = request.json or request.form
+    name = data.get('name')
+    age = data.get('age')
+    gender = data.get('gender')
+    medical_history = data.get('medical_history', '')
+    
+    if not name or not age or not gender:
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+        
+    patients = load_patients()
+    patient_id = f"PAT-{np.random.randint(1000, 9999)}"
+    while any(p['id'] == patient_id for p in patients):
+        patient_id = f"PAT-{np.random.randint(1000, 9999)}"
+        
+    new_patient = {
+        "id": patient_id,
+        "name": name,
+        "age": int(age),
+        "gender": gender,
+        "medical_history": medical_history,
+        "scans": []
+    }
+    patients.append(new_patient)
+    save_patients(patients)
+    
+    return jsonify({"success": True, "patient": new_patient})
+
+@app.route('/api/patients/delete/<patient_id>', methods=['POST'])
+def delete_patient(patient_id):
+    if not is_authenticated():
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    patients = load_patients()
+    patients = [p for p in patients if p['id'] != patient_id]
+    save_patients(patients)
+    return jsonify({"success": True})
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    if not is_authenticated():
+        return redirect(url_for('login'))
     if 'file' not in request.files:
         return render_template('index.html', message="No file uploaded")
 
@@ -156,35 +266,153 @@ def predict():
 
     if file and allowed_file(file.filename):
         # 1. Secure and save the original file
-        filename = secure_filename(file.filename)
+        filename = f"scan_{int(datetime.datetime.now().timestamp())}_{secure_filename(file.filename)}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        # 2. Run the AI Prediction
-        img = preprocess_image(file_path)
+        # 2. Run the AI Prediction (saving the preprocessed image too)
+        img = preprocess_image(file_path, save_filename=filename)
         preds = model.predict(img)
 
         # 3. Analyze confidence and labels
         label, confidence, class_index, probabilities, status, message = analyze_prediction(preds)
 
-        # 4. Generate Grad-CAM (This saves the heatmap into static/gradcam)
-        # We need to capture the filename, not just the path
+        # 4. Generate Grad-CAM (saves heatmap into static/gradcam)
         generate_gradcam(file_path, class_index)
         
-        # 5. Pass ONLY the filename to the template
-        # The template uses url_for('static', filename='uploads/' + image)
+        # 5. Link to patient history if patient_id is provided
+        patient_id = request.form.get('patient_id')
+        eye_side = request.form.get('eye_side', 'Not Specified')
+        patient_name = None
+        
+        if patient_id and patient_id != 'none':
+            patients = load_patients()
+            for p in patients:
+                if p['id'] == patient_id:
+                    scan_id = f"SCN-{datetime.datetime.now().strftime('%Y%m%d')}-{np.random.randint(10, 99)}"
+                    scan_entry = {
+                        "scan_id": scan_id,
+                        "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+                        "eye": eye_side,
+                        "diagnosis": label,
+                        "confidence": round(confidence * 100, 2),
+                        "image": filename,
+                        "heatmap": filename,
+                        "status": status,
+                        "message": message,
+                        "probabilities": probabilities
+                    }
+                    p['scans'].append(scan_entry)
+                    patient_name = p['name']
+                    save_patients(patients)
+                    break
+        
         return render_template(
             'predict.html',
             diagnosis=label,
             confidence=round(confidence * 100, 2),
-            image=filename,           # Just 'filename.jpg'
-            heatmap=filename,         # Grad-CAM uses the same filename in a different folder
+            image=filename,
+            heatmap=filename,
             probabilities=probabilities,
             status=status,
-            message=message
+            message=message,
+            patient_id=patient_id,
+            patient_name=patient_name,
+            eye_side=eye_side
         )
 
     return render_template('index.html', message="Invalid file")
+
+@app.route('/predict_sample', methods=['POST'])
+def predict_sample():
+    if not is_authenticated():
+        return redirect(url_for('login'))
+    sample_type = request.form.get('sample_type') # 'healthy' or 'referable'
+    patient_id = request.form.get('patient_id')
+    eye_side = request.form.get('eye_side', 'Not Specified')
+    
+    if sample_type == 'healthy':
+        sample_path = 'static/samples/healthy.png'
+    elif sample_type == 'referable':
+        sample_path = 'static/samples/referable.png'
+    else:
+        return render_template('index.html', message="Invalid sample selection")
+        
+    filename = f"sample_{sample_type}_{int(datetime.datetime.now().timestamp())}.png"
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    shutil.copy(sample_path, file_path)
+    
+    # 2. Run the AI Prediction (saving the preprocessed image too)
+    img = preprocess_image(file_path, save_filename=filename)
+    preds = model.predict(img)
+
+    # 3. Analyze confidence and labels
+    label, confidence, class_index, probabilities, status, message = analyze_prediction(preds)
+
+    # 4. Generate Grad-CAM
+    generate_gradcam(file_path, class_index)
+    
+    # 5. Link to patient history
+    patient_name = None
+    if patient_id and patient_id != 'none':
+        patients = load_patients()
+        for p in patients:
+            if p['id'] == patient_id:
+                scan_id = f"SCN-{datetime.datetime.now().strftime('%Y%m%d')}-{np.random.randint(10, 99)}"
+                scan_entry = {
+                    "scan_id": scan_id,
+                    "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+                    "eye": eye_side,
+                    "diagnosis": label,
+                    "confidence": round(confidence * 100, 2),
+                    "image": filename,
+                    "heatmap": filename,
+                    "status": status,
+                    "message": message,
+                    "probabilities": probabilities
+                }
+                p['scans'].append(scan_entry)
+                patient_name = p['name']
+                save_patients(patients)
+                break
+                
+    return render_template(
+        'predict.html',
+        diagnosis=label,
+        confidence=round(confidence * 100, 2),
+        image=filename,
+        heatmap=filename,
+        probabilities=probabilities,
+        status=status,
+        message=message,
+        patient_id=patient_id,
+        patient_name=patient_name,
+        eye_side=eye_side
+    )
+@app.route('/report/<patient_id>/<scan_id>')
+def view_report(patient_id, scan_id):
+    if not is_authenticated():
+        return redirect(url_for('login'))
+    patients = load_patients()
+    for p in patients:
+        if p['id'] == patient_id:
+            for s in p['scans']:
+                if s['scan_id'] == scan_id:
+                    return render_template(
+                        'predict.html',
+                        diagnosis=s['diagnosis'],
+                        confidence=s['confidence'],
+                        image=s['image'],
+                        heatmap=s['heatmap'],
+                        probabilities=s.get('probabilities', []),
+                        status=s['status'],
+                        message=s['message'],
+                        patient_id=p['id'],
+                        patient_name=p['name'],
+                        eye_side=s['eye']
+                    )
+    return "Report not found", 404
+
 # ---------------- RUN ----------------
 if __name__ == '__main__':
     app.run(debug=True)

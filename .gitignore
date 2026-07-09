@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Ephemeral user uploads and generated grad-cam overlays
+static/uploads/
+static/gradcam/
+static/preprocessed/

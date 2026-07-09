@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinician Login - OptiScan DR</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(148, 163, 184, 0.2);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent-blue: #0284c7;
+            --accent-teal: #0f766e;
+            --light-border: rgba(148, 163, 184, 0.2);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient soft background glows */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+            pointer-events: none;
+            animation: floatBlobs 20s infinite alternate ease-in-out;
+        }
+        .glow-blob-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #bae6fd 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+        }
+        .glow-blob-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #ddd6fe 0%, transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatBlobs {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 45px 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 15px 35px rgba(148, 163, 184, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+            border-radius: 28px 28px 0 0;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+            margin-bottom: 15px;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: 900;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .portal-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .form-label-custom {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .form-control-custom {
+            background: #ffffff;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            color: var(--text-primary);
+            border-radius: 14px;
+            padding: 14px 20px;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 14.5px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01);
+        }
+
+        .form-control-custom:focus {
+            background: #ffffff;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.2);
+            outline: none;
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 14px 28px;
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+            width: 100%;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .btn-glow:hover {
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(2, 132, 199, 0.4);
+        }
+
+        /* Demo credentials block */
+        .demo-box {
+            background: rgba(2, 132, 199, 0.04);
+            border: 1px solid rgba(2, 132, 199, 0.15);
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-top: 30px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .demo-title {
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        @media (max-width: 576px) {
+            .login-card {
+                padding: 30px 20px !important;
+                border-radius: 20px !important;
+                margin: 15px !important;
+            }
+            .brand-name {
+                font-size: 20px !important;
+            }
+            .brand-logo {
+                width: 44px !important;
+                height: 44px !important;
+                font-size: 20px !important;
+            }
+            .brand-header {
+                margin-bottom: 25px !important;
+            }
+            body {
+                overflow-y: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glow-blob glow-blob-1"></div>
+<div class="glow-blob glow-blob-2"></div>
+
+<div class="login-card">
+    <div class="brand-header">
+        <div class="brand-logo">
+            <i class="fa-solid fa-eye-dropper"></i>
+        </div>
+        <div class="brand-name">OptiScan DR</div>
+        <div class="portal-subtitle">Clinician Portal</div>
+    </div>
+
+    <!-- Error message display -->
+    {% if error %}
+    <div class="alert alert-danger border-0 rounded-4 p-3 mb-4" role="alert" style="background: rgba(220, 38, 38, 0.08); color: var(--danger); font-size: 13px;">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <div class="mb-4">
+            <label class="form-label-custom" for="email">Clinician ID / Email</label>
+            <input type="text" name="email" id="email" class="form-control-custom" placeholder="doctor@optiscan.ai" required autocomplete="username">
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label-custom" for="password">Password</label>
+            <input type="password" name="password" id="password" class="form-control-custom" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-glow">
+            <i class="fa-solid fa-shield-halved me-1"></i> Authenticate & Open
+        </button>
+    </form>
+
+    <div class="demo-box">
+        <div class="demo-title">
+            <i class="fa-solid fa-key"></i> Demonstration Credentials
+        </div>
+        <div class="text-secondary">
+            Use the following credentials to authenticate the portfolio sandbox:
+            <div class="mt-2 text-dark">
+                <strong>ID:</strong> <code>doctor@optiscan.ai</code><br>
+                <strong>Password:</strong> <code>clinical2026</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
