@@ -3,8 +3,7 @@ title: Diabetic Retinopathy Detection
 emoji: 👁️
 colorFrom: blue
 colorTo: indigo
-sdk: docker
-app_port: 7860
+sdk: streamlit
 pinned: false
 ---
 

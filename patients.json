@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "PAT-8289",
+    "name": "John Doe",
+    "age": 45,
+    "gender": "Male",
+    "medical_history": "Type 2 Diabetes (5 years)",
+    "scans": [
+      {
+        "scan_id": "SCN-20260709-18",
+        "date": "2026-07-09 17:15",
+        "eye": "Right Eye (OD)",
+        "diagnosis": "Referable DR (Moderate/Severe/Proliferative)",
+        "confidence": 84.59,
+        "image": "sample_referable_1783597505.png",
+        "heatmap": "sample_referable_1783597505.png",
+        "status": "danger",
+        "message": "\u26a0\ufe0f Model detected signs of Referable DR. Please consult an ophthalmologist.",
+        "probabilities": [
+          {
+            "label": "Non-Referable DR (Healthy/Mild)",
+            "value": 15.41
+          },
+          {
+            "label": "Referable DR (Moderate/Severe/Proliferative)",
+            "value": 84.59
+          }
+        ]
+      }
+    ]
+  }
+]
